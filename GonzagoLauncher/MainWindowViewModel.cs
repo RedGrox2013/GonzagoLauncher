@@ -92,6 +92,8 @@ namespace GonzagoLauncher
                     UseShellExecute = true,
                     Verb = "runas"
                 };
+                if (!string.IsNullOrEmpty(CommandLineArguments))
+                    startInfo.Arguments = CommandLineArguments;
 
                 switch (Modes[SelectedModeIndex])
                 {
@@ -100,23 +102,10 @@ namespace GonzagoLauncher
                             await PatchFlySwimMode();
 
                         startInfo.FileName = PatchPath;
-
-                        if (CommandLineArguments != null)
-                        {
-                            startInfo.Arguments = CommandLineArguments;
-                            Process.Start(startInfo);
-                        }
-                        else Process.Start(PatchPath);
-                        break;
-                    default:
-                        if (CommandLineArguments != null)
-                        {
-                            startInfo.Arguments = CommandLineArguments;
-                            Process.Start(startInfo);
-                        }
-                        else Process.Start(startInfo);
                         break;
                 }
+
+                Process.Start(startInfo);
             }
             catch (Exception ex)
             {
