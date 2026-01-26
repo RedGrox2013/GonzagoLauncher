@@ -124,7 +124,7 @@ namespace GonzagoLauncher
         private async Task DownloadGonzagoAsync()
         {
             IsIndeterminate = true;
-            Status = "Loading...";
+            Status = "Downloading GonzagoGL...";
             string? zipPath = null;
             using HttpClient client = new() { Timeout = TimeSpan.FromHours(2) };
             using FileDownloader downloader = new(client, progress: new Progress<DownloadProgressInfo>(p =>
@@ -148,7 +148,7 @@ namespace GonzagoLauncher
                         continue;
 
                     string destinationPath = Path.GetFullPath(Path.Combine(GONZAGO_PATH, entry.FullName));
-                    Status = $"Unpacking \"{destinationPath}\"";
+                    Status = $"Unpacking \"{entry.FullName}\"";
 
                     string dir = Path.GetDirectoryName(destinationPath) ?? GONZAGO_PATH;
                     if (!Directory.Exists(dir))
