@@ -100,8 +100,12 @@ namespace GonzagoLauncher
                     case GonzagoMode.FlySwim:
                         if (!File.Exists(PatchPath))
                             await PatchFlySwimMode();
+                        EditFlySwimIni();
 
                         startInfo.FileName = PatchPath;
+                        break;
+                    default:
+                        await EditDefaultIniAsync();
                         break;
                 }
 
@@ -178,10 +182,6 @@ namespace GonzagoLauncher
 
             try
             {
-                string iniPath = Path.Combine(GONZAGO_PATH, "Data", "Gonzago.ini");
-                var iniLines = File.ReadAllLines(iniPath);
-                File.WriteAllLines(iniPath, [.. iniLines.Where(l => !l.Equals("load_game = predators"))]);
-
                 File.Copy(AppPath, PatchPath, true);
                 using var stream = File.OpenWrite(PatchPath);
                 stream.Seek(0x155e8, SeekOrigin.Begin);
@@ -193,6 +193,24 @@ namespace GonzagoLauncher
                 IsIndeterminate = false;
                 Status = oldStatus;
             }
+        }
+
+        private static void EditFlySwimIni()
+        {
+            string iniPath = Path.Combine(GONZAGO_PATH, "Data", "Gonzago.ini");
+            var iniLines = File.ReadAllLines(iniPath);
+            File.WriteAllLines(iniPath, [.. iniLines.Where(l => !l.Equals("load_game = predators"))]);
+        }
+
+        private static async Task EditDefaultIniAsync()
+        {
+            string iniPath = Path.Combine(GONZAGO_PATH, "Data", "Gonzago.ini");
+            var iniLines = File.ReadAllLines(iniPath);
+            if (iniLines.Contains("load_game = predators"))
+                return;
+
+            using var sw = File.AppendText(iniPath);
+            await sw.WriteLineAsync("load_game = predators");
         }
     }
 
