@@ -21,6 +21,15 @@
             <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
 
+        <Image Source="/Resources/Images/background.png"
+               Grid.RowSpan="3"
+               Opacity=".3"
+               Stretch="UniformToFill">
+            <Image.Effect>
+                <BlurEffect Radius="10" KernelType="Gaussian" />
+            </Image.Effect>
+        </Image>
+
         <TextBlock HorizontalAlignment="Center"
                    VerticalAlignment="Center"
                    FontSize="80"
