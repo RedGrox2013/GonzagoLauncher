@@ -1,10 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.IO;
-using System.IO.Compression;
-using System.Net.Http;
 using System.Windows;
 using System.Windows.Input;
 
@@ -12,6 +9,8 @@ namespace GonzagoLauncher
 {
     class MainWindowViewModel : ObservableRecipient
     {
+        private readonly LauncherService _launcher = new();
+
         public ICommand PlayButtonCommand { get; private set; }
 
         public ReadOnlyCollection<GonzagoMode> Modes { get; } = [
@@ -66,11 +65,6 @@ namespace GonzagoLauncher
             set => SetProperty(ref _status, value);
         }
 
-        private const string GONZAGO_PATH = "Gonzago";
-        private const string APP_NAME = "GonzagoGL.exe";
-        public static readonly string PatchPath = Path.GetFullPath(Path.Combine(GONZAGO_PATH, "GonzagoGL_flyswim_patch.exe"));
-        public static readonly string AppPath = Path.GetFullPath(Path.Combine(GONZAGO_PATH, APP_NAME));
-
         public MainWindowViewModel()
         {
             PlayButtonCommand = new AsyncRelayCommand(PlayButtonClickAsync);
@@ -82,34 +76,10 @@ namespace GonzagoLauncher
 
             try
             {
-                if (!Directory.Exists(GONZAGO_PATH))
+                if (!Directory.Exists(LauncherService.GONZAGO_PATH))
                     await DownloadGonzagoAsync();
 
-                var startInfo = new ProcessStartInfo()
-                {
-                    FileName = AppPath,
-                    WorkingDirectory = Path.GetFullPath(GONZAGO_PATH),
-                    UseShellExecute = true,
-                    Verb = "runas"
-                };
-                if (!string.IsNullOrEmpty(CommandLineArguments))
-                    startInfo.Arguments = CommandLineArguments;
-
-                switch (Modes[SelectedModeIndex])
-                {
-                    case GonzagoMode.FlySwim:
-                        if (!File.Exists(PatchPath))
-                            await PatchFlySwimMode();
-                        EditFlySwimIni();
-
-                        startInfo.FileName = PatchPath;
-                        break;
-                    default:
-                        await EditDefaultIniAsync();
-                        break;
-                }
-
-                Process.Start(startInfo);
+                await _launcher.LaunchAsync(Modes[SelectedModeIndex], CommandLineArguments);
             }
             catch (Exception ex)
             {
@@ -125,41 +95,22 @@ namespace GonzagoLauncher
         {
             IsIndeterminate = true;
             Status = "Downloading GonzagoGL...";
-            string? zipPath = null;
-            using HttpClient client = new() { Timeout = TimeSpan.FromHours(2) };
-            using FileDownloader downloader = new(client, progress: new Progress<DownloadProgressInfo>(p =>
-            {
-                IsIndeterminate = false;
-                ProgressValue = (int)p.PercentDownloaded;
-                Status = $"Downloading GonzagoGL: {p.BytesDownloaded} / {p.TotalBytes} bytes ({p.PercentDownloaded})";
-            }));
 
             try
             {
-                zipPath = await downloader.DownloadTempFileAsync("http://www.spore.com/static/war/images/community/prototypes/gonzago.zip");
-                using var stream = File.OpenRead(zipPath);
-                using ZipArchive zip = new(stream);
-                ProgressValue = 0;
-                MaxProgressValue = zip.Entries.Count;
-
-                foreach (var entry in zip.Entries)
+                await _launcher.DownloadGonzagoAsync(new Progress<DownloadProgressInfo>(p =>
                 {
-                    if (string.IsNullOrEmpty(entry.Name))
-                        continue;
+                    IsIndeterminate = false;
+                    ProgressValue = (int)p.PercentDownloaded;
+                    Status = $"Downloading GonzagoGL: {p.BytesDownloaded} / {p.TotalBytes} bytes ({p.PercentDownloaded})";
+                }), new Progress<LauncherService.UnpackProgressInfo>(p =>
+                {
+                    ProgressValue = p.CurrentProgress;
+                    Status = $"Unpacking \"{p.CurrentEntryName}\"";
+                    MaxProgressValue = p.Total;
+                }));
 
-                    string destinationPath = Path.GetFullPath(Path.Combine(GONZAGO_PATH, entry.FullName));
-                    Status = $"Unpacking \"{entry.FullName}\"";
-
-                    string dir = Path.GetDirectoryName(destinationPath) ?? GONZAGO_PATH;
-                    if (!Directory.Exists(dir))
-                        Directory.CreateDirectory(dir);
-
-                    await entry.ExtractToFileAsync(destinationPath, overwrite: true);
-
-                    ProgressValue++;
-                }
-
-                await PatchFlySwimMode();
+                PatchFlySwimMode();
             }
             catch { throw; }
             finally
@@ -168,13 +119,10 @@ namespace GonzagoLauncher
                 ProgressValue = 0;
                 MaxProgressValue = 100;
                 Status = null;
-
-                if (File.Exists(zipPath))
-                    File.Delete(zipPath);
             }
         }
 
-        private async Task PatchFlySwimMode()
+        private void PatchFlySwimMode()
         {
             IsIndeterminate = true;
             string? oldStatus = Status;
@@ -182,10 +130,7 @@ namespace GonzagoLauncher
 
             try
             {
-                File.Copy(AppPath, PatchPath, true);
-                using var stream = File.OpenWrite(PatchPath);
-                stream.Seek(0x155e8, SeekOrigin.Begin);
-                stream.WriteByte(0xB8);
+                _launcher.PatchFlySwimMode();
             }
             catch { throw; }
             finally
@@ -193,24 +138,6 @@ namespace GonzagoLauncher
                 IsIndeterminate = false;
                 Status = oldStatus;
             }
-        }
-
-        private static void EditFlySwimIni()
-        {
-            string iniPath = Path.Combine(GONZAGO_PATH, "Data", "Gonzago.ini");
-            var iniLines = File.ReadAllLines(iniPath);
-            File.WriteAllLines(iniPath, [.. iniLines.Where(l => !l.Equals("load_game = predators"))]);
-        }
-
-        private static async Task EditDefaultIniAsync()
-        {
-            string iniPath = Path.Combine(GONZAGO_PATH, "Data", "Gonzago.ini");
-            var iniLines = File.ReadAllLines(iniPath);
-            if (iniLines.Contains("load_game = predators"))
-                return;
-
-            using var sw = File.AppendText(iniPath);
-            await sw.WriteLineAsync("load_game = predators");
         }
     }
 
