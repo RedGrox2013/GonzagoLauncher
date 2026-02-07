@@ -61,6 +61,14 @@
                     -usecivtestcamera
                 </TextBox.ToolTip>
             </TextBox>
+            <TextBlock>
+                <Hyperlink NavigateUri="https://t.me/SporeRedGroxMods"
+                           Name="TgLink"
+                           CommandParameter="{Binding ElementName=TgLink, Path=NavigateUri}"
+                           Command="{Binding HyperlinkClickCommand}">
+                    t.me/SporeRedGroxMods
+                </Hyperlink>
+            </TextBlock>
 
             <Button FontSize="30"
                     Margin="0, 50, 0, 0"

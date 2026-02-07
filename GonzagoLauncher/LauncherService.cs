@@ -123,5 +123,11 @@ namespace GonzagoLauncher
             using var sw = File.AppendText(iniPath);
             await sw.WriteLineAsync("load_game = predators");
         }
+
+        public void OpenLink(Uri? uri)
+        {
+            if (uri != null)
+                Process.Start("explorer", uri.AbsoluteUri);
+        }
     }
 }

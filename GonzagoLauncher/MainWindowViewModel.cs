@@ -12,6 +12,7 @@ namespace GonzagoLauncher
         private readonly LauncherService _launcher = new();
 
         public ICommand PlayButtonCommand { get; private set; }
+        public ICommand HyperlinkClickCommand { get; private set; }
 
         public ReadOnlyCollection<GonzagoMode> Modes { get; } = [
             GonzagoMode.None,
@@ -72,6 +73,7 @@ namespace GonzagoLauncher
         public MainWindowViewModel()
         {
             PlayButtonCommand = new AsyncRelayCommand(PlayButtonClickAsync);
+            HyperlinkClickCommand = new RelayCommand<Uri>(_launcher.OpenLink);
         }
 
         private async Task PlayButtonClickAsync()
