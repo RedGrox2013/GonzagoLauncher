@@ -15,6 +15,8 @@ namespace GonzagoLauncher
 
         public ReadOnlyCollection<GonzagoMode> Modes { get; } = [
             GonzagoMode.None,
+            GonzagoMode.TribeMode,
+            GonzagoMode.CivMode,
             GonzagoMode.FlySwim,
             ];
         private int _selectedModeIndex;
@@ -139,11 +141,5 @@ namespace GonzagoLauncher
                 Status = oldStatus;
             }
         }
-    }
-
-    enum GonzagoMode
-    {
-        None,
-        FlySwim
     }
 }
