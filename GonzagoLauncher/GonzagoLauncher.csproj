@@ -7,11 +7,19 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Icon.ico</ApplicationIcon>
+    <SignAssembly>False</SignAssembly>
+    <Company>RedGrox</Company>
+    <Description></Description>
   </PropertyGroup>
 
   <ItemGroup>
     <None Remove="Resources\Fonts\SPOREDOM Rus.ttf" />
     <None Remove="Resources\Images\background.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Icon.ico" />
   </ItemGroup>
 
   <ItemGroup>
