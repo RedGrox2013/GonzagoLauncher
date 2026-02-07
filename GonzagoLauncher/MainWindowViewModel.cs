@@ -15,8 +15,10 @@ namespace GonzagoLauncher
 
         public ReadOnlyCollection<GonzagoMode> Modes { get; } = [
             GonzagoMode.None,
-            GonzagoMode.TribeMode,
-            GonzagoMode.CivMode,
+            GonzagoMode.Tribe,
+            GonzagoMode.City,
+            GonzagoMode.Civ,
+            GonzagoMode.Space,
             GonzagoMode.FlySwim,
             ];
         private int _selectedModeIndex;

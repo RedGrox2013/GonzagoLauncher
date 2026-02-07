@@ -4,9 +4,9 @@
     {
         None,
         FlySwim,
-        TribeMode,
-        CityMode,
-        CivMode,
-        SpaceMode
+        Tribe,
+        City,
+        Civ,
+        Space
     }
 }

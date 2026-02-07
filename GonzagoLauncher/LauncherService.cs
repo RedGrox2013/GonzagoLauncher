@@ -70,23 +70,39 @@ namespace GonzagoLauncher
                 UseShellExecute = true,
                 Verb = "runas"
             };
-            if (!string.IsNullOrEmpty(arguments))
-                startInfo.Arguments = arguments;
 
-            switch (launchMode)
+            if (launchMode == GonzagoMode.FlySwim)
             {
-                case GonzagoMode.FlySwim:
-                    if (!File.Exists(PatchPath))
-                        PatchFlySwimMode();
-                    EditFlySwimIni();
+                if (!File.Exists(PatchPath))
+                    PatchFlySwimMode();
+                EditFlySwimIni();
 
-                    startInfo.FileName = PatchPath;
-                    break;
-                default:
-                    await EditDefaultIniAsync();
-                    break;
+                startInfo.FileName = PatchPath;
+            }
+            else
+            {
+                await EditDefaultIniAsync();
+
+                switch (launchMode)
+                {
+                    case GonzagoMode.Tribe:
+                        startInfo.Arguments = "-tribemode ";
+                        break;
+                    case GonzagoMode.City:
+                        startInfo.Arguments = "-cityemode ";
+                        break;
+                    case GonzagoMode.Civ:
+                        startInfo.Arguments = "-civmode ";
+                        break;
+                    case GonzagoMode.Space:
+                        startInfo.Arguments = "-spacemode ";
+                        break;
+                    default:
+                        break;
+                }
             }
 
+            startInfo.Arguments += arguments;
             Process.Start(startInfo);
         }
 
